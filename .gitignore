@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.so
+*.egg-info/
+
+# Environment variables
+.env
+.env.*
+
+# VSCode
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# Alembic
+alembic_migrations/versions/*.pyc
+
+# Logs
+*.log
+
+# Node
+node_modules/
+
+# Others
+*.sqlite3
+*.db
+
+# Ignore example env file
+!.env.example
