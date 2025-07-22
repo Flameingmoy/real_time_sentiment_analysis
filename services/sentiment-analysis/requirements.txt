@@ -8,3 +8,13 @@ pydantic==2.10.4
 redis==5.2.1
 numpy==1.26.4
 asyncpg==0.29.0
+psycopg2-binary
+kafka-python
+requests
+redis
+numpy
+ollama
+uvicorn
+fastapi
+pydantic
+python-dotenv
