@@ -98,6 +98,18 @@ services:
       timeout: 5s
       retries: 5
 
+  kafka-setup:
+    build:
+      context: ./services/kafka-setup
+      dockerfile: Dockerfile
+    container_name: rtsa-kafka-setup
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      - KAFKA_BROKER=kafka:29092
+    restart: on-failure
+
   # Redis, RedisSearch, RedisInsight
   redis:
     image: redis/redis-stack:latest
@@ -145,6 +157,59 @@ services:
       - vol_ollama:/root/.ollama/models
     healthcheck:
       test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Go Ingestion Service ----------------------------------------------------------------------
+  ingestion:
+    build:
+      context: ./services/ingestion
+      dockerfile: Dockerfile
+    container_name: rtsa-ingestion-service
+    depends_on:
+      kafka:
+        condition: service_healthy
+      psql-raw:
+        condition: service_healthy
+    ports:
+      - "8081:8080"
+    environment:
+      - KAFKA_BROKER=kafka:29092
+      - POSTGRES_HOST=psql-raw
+      - POSTGRES_USER=rtsa_user
+      - POSTGRES_PASSWORD=rtsa_password
+      - POSTGRES_DB=rtsa_raw
+      - POSTGRES_PORT=5432
+    healthcheck:
+      test: ["CMD-SHELL", "go run validate_connections.go"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Python Sentiment Analysis Service ----------------------------------------------------------------------
+  sentiment-analysis:
+    build:
+      context: ./services/sentiment-analysis
+      dockerfile: Dockerfile
+    container_name: rtsa-sentiment-analysis-service
+    depends_on:
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    environment:
+      - KAFKA_BROKER=kafka:29092
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - OLLAMA_HOST=ollama
+      - OLLAMA_PORT=11434
+    healthcheck:
+      test: ["CMD-SHELL", "python validate_connections.py"]
       interval: 30s
       timeout: 10s
       retries: 3
