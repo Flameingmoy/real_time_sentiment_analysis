@@ -51,6 +51,10 @@ class RedisVectorTest:
             return False
     
     def cleanup_test_data(self):
+        if not self.redis_client:
+            print("✗ Redis client is not connected")
+            return False
+        
         """Clean up any existing test data"""
         try:
             # Delete test index if exists
@@ -70,6 +74,10 @@ class RedisVectorTest:
             print(f"Warning: Cleanup failed: {e}")
     
     def create_vector_index(self):
+        if not self.redis_client:
+            print("✗ Redis client is not connected")
+            return False
+        
         """Create vector index for similarity search"""
         try:
             # Create index with vector field
@@ -152,6 +160,10 @@ class RedisVectorTest:
     
     def search_similar_vectors(self, query_vector, k=5, threshold=0.8):
         """Search for similar vectors"""
+        if not self.redis_client:
+            print("✗ Redis client is not connected")
+            return False
+        
         try:
             # Convert vector to bytes
             query_bytes = query_vector.tobytes()

@@ -4,10 +4,8 @@ Comprehensive Database Setup Test
 Tests all three PostgreSQL databases with connection pooling and schema validation
 """
 
-import psycopg2
 from psycopg2 import pool
 from psycopg2.extras import Json
-import json
 import time
 from datetime import datetime, timezone
 import sys
@@ -55,7 +53,7 @@ class DatabaseTester:
                     'maxconn': 10
                 }
                 
-                self.connection_pools[db_name] = psycopg2.pool.ThreadedConnectionPool(**pool_config)
+                self.connection_pools[db_name] = pool.ThreadedConnectionPool(**pool_config)
                 print(f"✅ Connection pool created for {db_name} database")
                 
             except Exception as e:
