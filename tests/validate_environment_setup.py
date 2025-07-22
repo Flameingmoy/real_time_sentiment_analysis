@@ -137,19 +137,31 @@ def check_postgresql_connections():
     
     for db_config in databases:
         try:
-            conn = psycopg2.connect(
+            with psycopg2.connect(
                 host=db_config["host"],
                 port=db_config["port"],
                 database=db_config["db"],
                 user="rtsa_user",
                 password="rtsa_password"
-            )
-            cursor = conn.cursor()
-            cursor.execute("SELECT version();")
-            version = cursor.fetchone()[0]
-            print_status(f"PostgreSQL {db_config['name']}", "OK", f"Connected - {version.split()[0]} {version.split()[1]}")
-            conn.close()
-            
+            ) as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute("SELECT version();")
+                    result = cursor.fetchone()
+                    
+                    if result and result[0]:
+                        version = result[0]
+                        version_parts = version.split()
+                        if len(version_parts) >= 2:
+                            version_info = f"{version_parts[0]} {version_parts[1]}"
+                        else:
+                            version_info = version_parts[0] if version_parts else "Unknown"
+                        
+                        print_status(f"PostgreSQL {db_config['name']}", "OK", 
+                                   f"Connected - {version_info}")
+                    else:
+                        print_status(f"PostgreSQL {db_config['name']}", "FAIL", 
+                                   "Connected but no version info returned")
+                        
         except Exception as e:
             print_status(f"PostgreSQL {db_config['name']}", "FAIL", str(e))
 
