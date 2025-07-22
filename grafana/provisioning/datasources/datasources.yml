@@ -4,13 +4,13 @@ datasources:
   - name: RTSA Analytics
     type: postgres
     access: proxy
-    url: postgres-analytics:5432
+    url: psql-analytics:5432
     database: rtsa_analytics
     user: rtsa_user
     secureJsonData:
       password: rtsa_password
     jsonData:
-      sslmode: disable
+      sslmode: 'disable'
       postgresVersion: 1500
       timescaledb: false
     isDefault: true
@@ -18,25 +18,25 @@ datasources:
   - name: RTSA Logging
     type: postgres
     access: proxy
-    url: postgres-logging:5432
+    url: psql-logs:5432
     database: rtsa_logging
     user: rtsa_user
     secureJsonData:
       password: rtsa_password
     jsonData:
-      sslmode: disable
+      sslmode: 'disable'
       postgresVersion: 1500
       timescaledb: false
 
   - name: RTSA Raw Data
     type: postgres
     access: proxy
-    url: postgres-raw:5432
+    url: psql-raw:5432
     database: rtsa_raw
     user: rtsa_user
     secureJsonData:
       password: rtsa_password
     jsonData:
-      sslmode: disable
+      sslmode: 'disable'
       postgresVersion: 1500
       timescaledb: false
