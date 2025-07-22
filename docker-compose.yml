@@ -61,7 +61,7 @@ services:
   # Message Queue and Cache ----------------------------------------------------------------------
   # Apache Zookeeper
   zookeeper:
-    image: zookeeper:latest
+    image: confluentinc/cp-zookeeper:7.4.0
     container_name: rtsa-zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
@@ -74,7 +74,7 @@ services:
 
   # Apache Kafka
   kafka:
-    image: apache/kafka:latest
+    image: confluentinc/cp-kafka:7.4.0
     container_name: rtsa-kafka
     depends_on:
       zookeeper:
@@ -126,10 +126,25 @@ services:
       - vol_grafana:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
     depends_on:
-      - postgres-analytics
-      - postgres-logging
+      - psql-analytics
+      - psql-logs
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Sentiment Analysis ----------------------------------------------------------------------
+  # Ollama
+  ollama:
+    image: ollama/ollama:latest
+    container_name: rtsa-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - vol_ollama:/root/.ollama/models
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
       interval: 30s
       timeout: 10s
       retries: 3
