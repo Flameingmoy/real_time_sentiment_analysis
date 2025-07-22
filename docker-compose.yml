@@ -1,17 +1,19 @@
+# - RTSA Services ----------------------------------------------------------------------
 services:
-  # PostgreSQL Database 1 - Raw Data
-  postgres-raw:
-    image: postgres:15
-    container_name: rtsa-postgres-raw
+  # Postgres Databases ----------------------------------------------------------------------
+  # PostgreSQL Database 1 - Raw Data/Debugging
+  psql-raw:
+    image: postgres:latest
+    container_name: rtsa-pg-raw
     environment:
-      POSTGRES_DB: rtsa_raw
-      POSTGRES_USER: rtsa_user
-      POSTGRES_PASSWORD: rtsa_password
+      - POSTGRES_DB=rtsa_raw
+      - POSTGRES_USER=rtsa_user
+      - POSTGRES_PASSWORD=rtsa_password
     ports:
-      - "5435:5432"
+      - "5433:5432"
     volumes:
-      - postgres_raw_data:/var/lib/postgresql/data
-      - ./sql/init-raw-db.sql:/docker-entrypoint-initdb.d/init.sql
+      - vol_pg_raw:/var/lib/postgresql/data
+      - ./sql/init-raw-db.sql:/docker-entrypoint-initdb.d/init-raw.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U rtsa_user -d rtsa_raw"]
       interval: 10s
@@ -19,18 +21,18 @@ services:
       retries: 5
 
   # PostgreSQL Database 2 - Analytics
-  postgres-analytics:
-    image: postgres:15
-    container_name: rtsa-postgres-analytics
+  psql-analytics:
+    image: postgres:latest
+    container_name: rtsa-pg-analytics
     environment:
-      POSTGRES_DB: rtsa_analytics
-      POSTGRES_USER: rtsa_user
-      POSTGRES_PASSWORD: rtsa_password
+      - POSTGRES_DB=rtsa_analytics
+      - POSTGRES_USER=rtsa_user
+      - POSTGRES_PASSWORD=rtsa_password
     ports:
-      - "5433:5432"
+      - "5434:5432"
     volumes:
-      - postgres_analytics_data:/var/lib/postgresql/data
-      - ./sql/init-analytics-db.sql:/docker-entrypoint-initdb.d/init.sql
+      - vol_pg_analytics:/var/lib/postgresql/data
+      - ./sql/init-analytics-db.sql:/docker-entrypoint-initdb.d/init-analytics.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U rtsa_user -d rtsa_analytics"]
       interval: 10s
@@ -38,27 +40,28 @@ services:
       retries: 5
 
   # PostgreSQL Database 3 - Logging
-  postgres-logging:
-    image: postgres:15
-    container_name: rtsa-postgres-logging
+  psql-logs:
+    image: postgres:latest
+    container_name: rtsa-pg-logs
     environment:
       POSTGRES_DB: rtsa_logging
       POSTGRES_USER: rtsa_user
       POSTGRES_PASSWORD: rtsa_password
     ports:
-      - "5434:5432"
+      - "5435:5432"
     volumes:
-      - postgres_logging_data:/var/lib/postgresql/data
-      - ./sql/init-logging-db.sql:/docker-entrypoint-initdb.d/init.sql
+      - vol_pg_logs:/var/lib/postgresql/data
+      - ./sql/init-logging-db.sql:/docker-entrypoint-initdb.d/init-logging.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U rtsa_user -d rtsa_logging"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # Apache Kafka
+  # Message Queue and Cache ----------------------------------------------------------------------
+  # Apache Zookeeper
   zookeeper:
-    image: confluentinc/cp-zookeeper:7.4.0
+    image: zookeeper:latest
     container_name: rtsa-zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
@@ -69,8 +72,9 @@ services:
       timeout: 5s
       retries: 5
 
+  # Apache Kafka
   kafka:
-    image: confluentinc/cp-kafka:7.4.0
+    image: apache/kafka:latest
     container_name: rtsa-kafka
     depends_on:
       zookeeper:
@@ -94,31 +98,32 @@ services:
       timeout: 5s
       retries: 5
 
-  # Redis with RedisSearch
+  # Redis, RedisSearch, RedisInsight
   redis:
-    image: redis/redis-stack:7.2.0-v6
+    image: redis/redis-stack:latest
     container_name: rtsa-redis
     ports:
       - "6380:6379"
-      - "8002:8001"  # RedisInsight
+      - "8002:8001"
     volumes:
-      - redis_data:/data
+      - vol_redis:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
 
+  # Visualization and Monitoring ----------------------------------------------------------------------
   # Grafana
   grafana:
-    image: grafana/grafana:10.2.0
+    image: grafana/grafana:main
     container_name: rtsa-grafana
     ports:
       - "3000:3000"
     environment:
       GF_SECURITY_ADMIN_PASSWORD: admin
     volumes:
-      - grafana_data:/var/lib/grafana
+      - vol_grafana:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
     depends_on:
       - postgres-analytics
@@ -129,9 +134,11 @@ services:
       timeout: 10s
       retries: 3
 
+# - RTSA Volumes ----------------------------------------------------------------------
 volumes:
-  postgres_raw_data:
-  postgres_analytics_data:
-  postgres_logging_data:
-  redis_data:
-  grafana_data:
+  vol_pg_raw:
+  vol_pg_analytics:
+  vol_pg_logs:
+  vol_redis:
+  vol_grafana:
+  vol_ollama:
