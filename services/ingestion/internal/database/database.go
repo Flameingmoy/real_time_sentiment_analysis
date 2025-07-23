@@ -165,8 +165,7 @@ func (db *Database) initSchema() error {
 func (db *Database) InsertRawData(ctx context.Context, data *RawDataMessage) error {
 	// Generate content hash if not provided
 	if data.ContentHash == "" {
-		// Use marshalSorted to ensure a consistent hash
-		contentBytes, err := marshalSorted(data.Content)
+		contentBytes, err := json.Marshal(data.Content)
 		if err != nil {
 			return fmt.Errorf("failed to marshal content for hashing: %w", err)
 		}
