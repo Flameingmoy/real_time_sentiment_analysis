@@ -1,6 +1,5 @@
 FROM confluentinc/cp-kafka:7.4.0
 
-COPY setup-kafka.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/setup-kafka.sh
+COPY --chmod=0755 setup-kafka.sh /usr/local/bin/
 
 CMD ["setup-kafka.sh"]
