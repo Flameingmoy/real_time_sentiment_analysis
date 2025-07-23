@@ -11,11 +11,11 @@ import (
 
 // TokenBucket represents a token bucket for rate limiting
 type TokenBucket struct {
-	tokens    int
-	capacity  int
+	tokens     int
+	capacity   int
 	refillRate int
 	lastRefill time.Time
-	mutex     sync.Mutex
+	mutex      sync.Mutex
 }
 
 // NewTokenBucket creates a new token bucket
@@ -35,7 +35,6 @@ func (tb *TokenBucket) TakeToken() bool {
 
 	now := time.Now()
 	elapsed := now.Sub(tb.lastRefill)
-	
 	// Refill tokens based on elapsed time
 	tokensToAdd := int(elapsed.Seconds()) * tb.refillRate
 	if tokensToAdd > 0 {
@@ -124,11 +123,11 @@ func RateLimit(cfg config.RateLimitConfig) gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 		clientID := c.ClientIP()
-		
+
 		if !rateLimiter.IsAllowed(clientID) {
 			c.JSON(http.StatusTooManyRequests, gin.H{
-				"error": "Rate limit exceeded",
-				"message": "Too many requests from this IP address",
+				"error":       "Rate limit exceeded",
+				"message":     "Too many requests from this IP address",
 				"retry_after": "60s",
 			})
 			c.Abort()

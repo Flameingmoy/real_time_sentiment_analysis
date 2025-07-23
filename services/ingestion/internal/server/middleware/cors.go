@@ -11,7 +11,6 @@ import (
 func CORS(cfg config.CORSConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		origin := c.Request.Header.Get("Origin")
-		
 		// Check if origin is allowed
 		allowed := false
 		for _, allowedOrigin := range cfg.AllowedOrigins {

@@ -21,7 +21,6 @@ func ErrorHandler() gin.HandlerFunc {
 		// Handle any errors that occurred during request processing
 		if len(c.Errors) > 0 {
 			err := c.Errors.Last()
-			
 			// Log the error
 			LogError("error_handler", "Request processing error", err.Err)
 
