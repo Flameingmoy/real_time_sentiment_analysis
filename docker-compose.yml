@@ -44,9 +44,9 @@ services:
     image: postgres:latest
     container_name: rtsa-pg-logs
     environment:
-      POSTGRES_DB: rtsa_logging
-      POSTGRES_USER: rtsa_user
-      POSTGRES_PASSWORD: rtsa_password
+      - POSTGRES_DB=rtsa_logging
+      - POSTGRES_USER=rtsa_user
+      - POSTGRES_PASSWORD=rtsa_password
     ports:
       - "5435:5432"
     volumes:
@@ -98,18 +98,6 @@ services:
       timeout: 5s
       retries: 5
 
-  kafka-setup:
-    build:
-      context: ./services/kafka-setup
-      dockerfile: Dockerfile
-    container_name: rtsa-kafka-setup
-    depends_on:
-      kafka:
-        condition: service_healthy
-    environment:
-      - KAFKA_BROKER=kafka:29092
-    restart: on-failure
-
   # Redis, RedisSearch, RedisInsight
   redis:
     image: redis/redis-stack:latest
@@ -154,7 +142,7 @@ services:
     ports:
       - "11435:11434"
     volumes:
-      - vol_ollama:/root/.ollama/models
+      - vol_ollama:/root/.ollama
     healthcheck:
       test: ["CMD", "ollama", "list"]
       interval: 30s
@@ -200,19 +188,65 @@ services:
         condition: service_healthy
       ollama:
         condition: service_healthy
+      psql-analytics:
+        condition: service_healthy
+      psql-logs:
+        condition: service_healthy
     ports:
       - "8000:8000"
     environment:
-      - KAFKA_BROKER=kafka:29092
+      # Kafka, Redis, Ollama config
+      - KAFKA_BROKERS=kafka:29092
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - OLLAMA_HOST=ollama
-      - OLLAMA_PORT=11434
+      - OLLAMA_HOST=http://ollama:11434
+      - OLLAMA_MODEL=granite3.3:2b
+      # Database config
+      - ANALYTICS_DB_HOST=psql-analytics
+      - ANALYTICS_DB_PORT=5432
+      - ANALYTICS_DB_NAME=rtsa_analytics
+      - ANALYTICS_DB_USER=rtsa_user
+      - ANALYTICS_DB_PASSWORD=rtsa_password
+      - LOGGING_DB_HOST=psql-logs
+      - LOGGING_DB_PORT=5432
+      - LOGGING_DB_NAME=rtsa_logging
+      - LOGGING_DB_USER=rtsa_user
+      - LOGGING_DB_PASSWORD=rtsa_password
     healthcheck:
       test: ["CMD-SHELL", "python validate_connections.py"]
       interval: 30s
       timeout: 10s
       retries: 3
+
+# - RTSA Setup Containers ----------------------------------------------------------------------
+  # Kafka Setup Service
+  kafka-setup:
+    build:
+      context: ./services/kafka-setup
+      dockerfile: Dockerfile
+    container_name: rtsa-kafka-setup
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      - KAFKA_BROKER=kafka:29092
+    restart: on-failure
+
+  # Ollama Setup Service
+  ollama-setup:
+    build:
+      context: ./services/ollama-setup
+      dockerfile: Dockerfile
+    container_name: rtsa-ollama-setup
+    depends_on:
+      ollama:
+        condition: service_healthy
+    volumes:
+      - vol_ollama:/root/.ollama
+    environment:
+      - OLLAMA_HOST=ollama:11434
+      - OLLAMA_MODEL=granite3.3:2b
+    restart: on-failure
 
 # - RTSA Volumes ----------------------------------------------------------------------
 volumes:
