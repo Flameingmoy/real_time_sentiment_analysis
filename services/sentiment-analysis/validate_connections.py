@@ -88,7 +88,7 @@ def test_ollama_connection():
     try:
         client = ollama.Client(host=os.getenv('OLLAMA_HOST'))
         models = client.list()
-        model_name = os.getenv('OLLAMA_MODEL')
+        model_name = "granite3.3:8b"
         
         # Check if the required model is available
         available_models = [model['name'] for model in models['models']]

@@ -1,0 +1,55 @@
+2025-08-02 12:13:33,825 - __main__ - INFO - Initializing sentiment analysis service...
+2025-08-02 12:13:33,948 - src.database - INFO - Database tables and indexes created successfully
+2025-08-02 12:13:33,948 - src.database - INFO - Analytics database initialized successfully
+2025-08-02 12:13:33,949 - __main__ - INFO - Database initialized successfully
+2025-08-02 12:13:33,949 - src.vector_store - INFO - Redis vector store initialized successfully
+2025-08-02 12:13:33,949 - __main__ - INFO - Vector store initialized successfully
+2025-08-02 12:13:33,960 - src.sentiment - INFO - Initialized Ollama client with model: granite3.3:8b
+2025-08-02 12:13:33,960 - __main__ - INFO - Sentiment analyzer initialized successfully
+2025-08-02 12:13:33,960 - __main__ - INFO - Kafka consumer initialized successfully
+2025-08-02 12:13:33,960 - __main__ - INFO - Starting FastAPI server on 0.0.0.0:8081
+2025-08-02 12:13:33,960 - __main__ - INFO - Starting message processing...
+2025-08-02 12:13:33,961 - kafka.conn - INFO - <BrokerConnection node_id=bootstrap-0 host=localhost:9092 <connecting> [IPv4 ('127.0.0.1', 9092)]>: connecting to localhost:9092 [('127.0.0.1', 9092) IPv4]
+2025-08-02 12:13:33,961 - kafka.conn - INFO - Probing node bootstrap-0 broker version
+2025-08-02 12:13:33,961 - kafka.conn - INFO - <BrokerConnection node_id=bootstrap-0 host=localhost:9092 <connecting> [IPv4 ('127.0.0.1', 9092)]>: Connection complete.
+2025-08-02 12:13:34,062 - kafka.conn - INFO - Broker version identified as 2.5.0
+2025-08-02 12:13:34,062 - kafka.conn - INFO - Set configuration api_version=(2, 5, 0) to skip auto check_version requests on startup
+2025-08-02 12:13:34,062 - kafka.consumer.subscription_state - INFO - Updating subscribed topics to: ('sentiment_analysis_topic',)
+2025-08-02 12:13:34,062 - src.consumer - INFO - Kafka consumer initialized successfully
+2025-08-02 12:13:34,062 - src.consumer - INFO - Starting message consumption...
+2025-08-02 12:13:34,063 - kafka.cluster - INFO - Group coordinator for sentiment-analysis-group is BrokerMetadata(nodeId='coordinator-1', host='localhost', port=9092, rack=None)
+2025-08-02 12:13:34,063 - kafka.coordinator - INFO - Discovered coordinator coordinator-1 for group sentiment-analysis-group
+2025-08-02 12:13:34,063 - kafka.coordinator - INFO - Starting new heartbeat thread
+2025-08-02 12:13:34,063 - kafka.coordinator.consumer - INFO - Revoking previously assigned partitions set() for group sentiment-analysis-group
+2025-08-02 12:13:34,063 - kafka.conn - INFO - <BrokerConnection node_id=coordinator-1 host=localhost:9092 <connecting> [IPv4 ('127.0.0.1', 9092)]>: connecting to localhost:9092 [('127.0.0.1', 9092) IPv4]
+2025-08-02 12:13:34,063 - kafka.conn - INFO - <BrokerConnection node_id=coordinator-1 host=localhost:9092 <connecting> [IPv4 ('127.0.0.1', 9092)]>: Connection complete.
+2025-08-02 12:13:34,063 - kafka.conn - INFO - <BrokerConnection node_id=bootstrap-0 host=localhost:9092 <connected> [IPv4 ('127.0.0.1', 9092)]>: Closing connection. 
+2025-08-02 12:13:34,164 - kafka.coordinator - INFO - (Re-)joining group sentiment-analysis-group
+2025-08-02 12:13:37,166 - kafka.coordinator - INFO - Elected group leader -- performing partition assignments using range
+2025-08-02 12:13:37,166 - kafka.conn - INFO - <BrokerConnection node_id=1 host=localhost:9092 <connecting> [IPv4 ('127.0.0.1', 9092)]>: connecting to localhost:9092 [('127.0.0.1', 9092) IPv4]
+2025-08-02 12:13:37,166 - kafka.conn - INFO - <BrokerConnection node_id=1 host=localhost:9092 <connecting> [IPv4 ('127.0.0.1', 9092)]>: Connection complete.
+2025-08-02 12:13:37,167 - kafka.coordinator - INFO - Successfully joined group sentiment-analysis-group with generation 1
+2025-08-02 12:13:37,167 - kafka.consumer.subscription_state - INFO - Updated partition assignment: [TopicPartition(topic='sentiment_analysis_topic', partition=0)]
+2025-08-02 12:13:37,167 - kafka.coordinator.consumer - INFO - Setting newly assigned partitions {TopicPartition(topic='sentiment_analysis_topic', partition=0)} for group sentiment-analysis-group
+2025-08-02 12:13:43,562 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-08-02 12:13:43,562 - src.consumer - ERROR - Error processing message: name 'text_content' is not defined
+2025-08-02 12:13:43,586 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-08-02 12:13:43,586 - src.consumer - ERROR - Error processing message: name 'text_content' is not defined
+2025-08-02 12:13:43,586 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-08-02 12:13:43,587 - src.consumer - ERROR - Error processing message: name 'text_content' is not defined
+2025-08-02 12:13:43,610 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-08-02 12:13:43,611 - src.consumer - ERROR - Error processing message: name 'text_content' is not defined
+2025-08-02 12:13:44,216 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-08-02 12:13:44,217 - src.consumer - ERROR - Error processing message: name 'text_content' is not defined
+2025-08-02 12:13:44,243 - httpx - INFO - HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2025-08-02 12:13:44,244 - src.consumer - ERROR - Error processing message: name 'text_content' is not defined
+2025-08-02 12:14:00,058 - __main__ - INFO - Received signal 2, shutting down...
+2025-08-02 12:14:00,058 - __main__ - INFO - Shutting down sentiment analysis service...
+2025-08-02 12:14:00,059 - kafka.coordinator - INFO - Stopping heartbeat thread
+2025-08-02 12:14:00,059 - kafka.coordinator - INFO - Leaving consumer group (sentiment-analysis-group).
+2025-08-02 12:14:00,060 - kafka.conn - INFO - <BrokerConnection node_id=coordinator-1 host=localhost:9092 <connected> [IPv4 ('127.0.0.1', 9092)]>: Closing connection. 
+2025-08-02 12:14:00,060 - kafka.conn - INFO - <BrokerConnection node_id=1 host=localhost:9092 <connected> [IPv4 ('127.0.0.1', 9092)]>: Closing connection. 
+2025-08-02 12:14:00,060 - src.consumer - INFO - Kafka consumer stopped
+2025-08-02 12:14:00,063 - src.database - INFO - Database connection closed
+2025-08-02 12:14:00,063 - src.vector_store - INFO - Redis connection closed
+2025-08-02 12:14:00,063 - __main__ - INFO - Service shutdown complete

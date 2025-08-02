@@ -12,7 +12,7 @@ CREATE TABLE raw_data (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     processed_at TIMESTAMP WITH TIME ZONE,
     PRIMARY KEY (id, timestamp),
-    UNIQUE (content_hash, timestamp)
+    UNIQUE (content_hash)
 ) PARTITION BY RANGE (timestamp);
 
 -- Create indexes for performance

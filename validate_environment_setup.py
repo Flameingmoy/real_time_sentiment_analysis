@@ -252,7 +252,7 @@ def main():
     check_grafana()
     
     print(f"\n{Colors.BOLD}=== Validation Complete ==={Colors.ENDC}")
-    print("If any services show FAIL status, ensure they are running with: docker-compose up -d")
+    print("If any services show FAIL status, ensure they are running with: docker compose up -d")
 
 if __name__ == "__main__":
     main()
