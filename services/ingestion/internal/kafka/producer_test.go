@@ -723,7 +723,8 @@ func TestProducer_SendMessage_TimestampHandling(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
-			originalTimestamp := tt.message.Timestamp
+			// Commented out, may be used later
+			// originalTimestamp := tt.message.Timestamp
 			
 			err := producer.SendMessage(ctx, tt.message)
 			

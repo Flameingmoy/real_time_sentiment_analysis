@@ -341,8 +341,8 @@ func (p *Producer) WithRetry(ctx context.Context, operation string, fn func() er
 
 		// Check if error is retryable
 		var kafkaErr *ProducerError
-		if err, ok := err.(*ProducerError); ok {
-			kafkaErr = err
+		if producerError, ok := err.(*ProducerError); ok {
+			kafkaErr = producerError
 		} else {
 			// Wrap non-Kafka errors
 			kafkaErr = &ProducerError{
