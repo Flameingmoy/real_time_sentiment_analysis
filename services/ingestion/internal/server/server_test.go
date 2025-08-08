@@ -65,7 +65,7 @@ func createTestConfig() *config.Config {
 
 func TestNew(t *testing.T) {
 	cfg := createTestConfig()
-	
+
 	server, err := New(cfg)
 	if err != nil {
 		t.Fatalf("Failed to create server: %v", err)

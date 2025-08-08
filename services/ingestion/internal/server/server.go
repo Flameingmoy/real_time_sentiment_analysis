@@ -11,7 +11,6 @@ import (
 	"rtsa-ingestion/internal/kafka"
 	"rtsa-ingestion/internal/server/handlers"
 	"rtsa-ingestion/internal/server/middleware"
-	"rtsa-ingestion/internal/worker"
 )
 
 // Server represents the HTTP server
@@ -21,7 +20,6 @@ type Server struct {
 	httpServer *http.Server
 	database   *database.Database
 	producer   *kafka.Producer
-	dispatcher *worker.Dispatcher
 }
 
 // New creates a new server instance
@@ -48,16 +46,12 @@ func New(cfg *config.Config) (*Server, error) {
 	// Create Gin router
 	router := gin.New()
 
-	// Create worker dispatcher
-	dispatcher := worker.NewDispatcher(cfg.Server.WorkerCount, cfg.Server.JobQueueSize)
-
 	// Create server instance
 	server := &Server{
-		config:     cfg,
-		router:     router,
-		database:   db,
-		producer:   producer,
-		dispatcher: dispatcher,
+		config:   cfg,
+		router:   router,
+		database: db,
+		producer: producer,
 	}
 
 	// Setup middleware
@@ -98,19 +92,16 @@ func (s *Server) setupRoutes() {
 	// Webhook endpoints group
 	webhooks := s.router.Group("/webhook")
 	{
-		webhooks.POST("/truedata", handlers.TrueDataWebhook(s.database, s.producer, s.dispatcher))
-		webhooks.POST("/news", handlers.NewsWebhook(s.database, s.producer, s.dispatcher))
-		webhooks.POST("/twitter", handlers.TwitterWebhook(s.database, s.producer, s.dispatcher))
-		webhooks.POST("/reddit", handlers.RedditWebhook(s.database, s.producer, s.dispatcher))
-		webhooks.POST("/economic", handlers.EconomicWebhook(s.database, s.producer, s.dispatcher))
+		webhooks.POST("/truedata", handlers.TrueDataWebhook(s.database, s.producer))
+		webhooks.POST("/news", handlers.NewsWebhook(s.database, s.producer))
+		webhooks.POST("/twitter", handlers.TwitterWebhook(s.database, s.producer))
+		webhooks.POST("/reddit", handlers.RedditWebhook(s.database, s.producer))
+		webhooks.POST("/economic", handlers.EconomicWebhook(s.database, s.producer))
 	}
 }
 
-// Start starts the HTTP server and the worker dispatcher
+// Start starts the HTTP server
 func (s *Server) Start(addr string) error {
-	// Start the worker dispatcher in the background
-	go s.dispatcher.Run()
-
 	s.httpServer = &http.Server{
 		Addr:         addr,
 		Handler:      s.router,
@@ -124,11 +115,6 @@ func (s *Server) Start(addr string) error {
 
 // Shutdown gracefully shuts down the server
 func (s *Server) Shutdown(ctx context.Context) error {
-	// Stop the dispatcher and wait for workers to finish
-	if s.dispatcher != nil {
-		s.dispatcher.Stop()
-	}
-
 	// Close Kafka producer
 	if s.producer != nil {
 		s.producer.Close()
