@@ -27,8 +27,6 @@ type ServerConfig struct {
 	ReadTimeout  time.Duration `yaml:"read_timeout"`
 	WriteTimeout time.Duration `yaml:"write_timeout"`
 	IdleTimeout  time.Duration `yaml:"idle_timeout"`
-	WorkerCount  int           `yaml:"worker_count"`
-	JobQueueSize int           `yaml:"job_queue_size"`
 }
 
 // DatabaseConfig holds database configuration
@@ -46,8 +44,8 @@ type DatabaseConfig struct {
 
 // KafkaConfig holds Kafka configuration
 type KafkaConfig struct {
-	Brokers  []string           `yaml:"brokers"`
-	Topics   KafkaTopicsConfig  `yaml:"topics"`
+	Brokers  []string            `yaml:"brokers"`
+	Topics   KafkaTopicsConfig   `yaml:"topics"`
 	Producer KafkaProducerConfig `yaml:"producer"`
 }
 
@@ -95,9 +93,9 @@ type CORSConfig struct {
 
 // WebhooksConfig holds webhook configuration
 type WebhooksConfig struct {
-	Timeout     time.Duration      `yaml:"timeout"`
-	MaxBodySize int64              `yaml:"max_body_size"`
-	Validation  ValidationConfig   `yaml:"validation"`
+	Timeout     time.Duration    `yaml:"timeout"`
+	MaxBodySize int64            `yaml:"max_body_size"`
+	Validation  ValidationConfig `yaml:"validation"`
 }
 
 // ValidationConfig holds validation configuration
