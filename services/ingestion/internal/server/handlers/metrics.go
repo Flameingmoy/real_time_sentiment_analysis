@@ -19,22 +19,22 @@ type MetricsResponse struct {
 
 // SystemMetrics represents system-level metrics
 type SystemMetrics struct {
-	Uptime         string `json:"uptime"`
-	GoVersion      string `json:"go_version"`
-	NumGoroutines  int    `json:"num_goroutines"`
-	NumCPU         int    `json:"num_cpu"`
-	MemoryAlloc    uint64 `json:"memory_alloc"`
-	MemoryTotal    uint64 `json:"memory_total"`
-	MemorySys      uint64 `json:"memory_sys"`
-	GCPauseTotal   uint64 `json:"gc_pause_total"`
-	NumGC          uint32 `json:"num_gc"`
+	Uptime        string `json:"uptime"`
+	GoVersion     string `json:"go_version"`
+	NumGoroutines int    `json:"num_goroutines"`
+	NumCPU        int    `json:"num_cpu"`
+	MemoryAlloc   uint64 `json:"memory_alloc"`
+	MemoryTotal   uint64 `json:"memory_total"`
+	MemorySys     uint64 `json:"memory_sys"`
+	GCPauseTotal  uint64 `json:"gc_pause_total"`
+	NumGC         uint32 `json:"num_gc"`
 }
 
 // HTTPMetrics represents HTTP-level metrics
 type HTTPMetrics struct {
-	RequestsTotal   int64 `json:"requests_total"`
-	RequestsSuccess int64 `json:"requests_success"`
-	RequestsError   int64 `json:"requests_error"`
+	RequestsTotal   int64  `json:"requests_total"`
+	RequestsSuccess int64  `json:"requests_success"`
+	RequestsError   int64  `json:"requests_error"`
 	AvgResponseTime string `json:"avg_response_time"`
 }
 
@@ -59,15 +59,15 @@ func Metrics(db *database.Database) gin.HandlerFunc {
 		metrics := MetricsResponse{
 			Timestamp: time.Now().Format(time.RFC3339),
 			System: SystemMetrics{
-				Uptime:         uptime.String(),
-				GoVersion:      runtime.Version(),
-				NumGoroutines:  runtime.NumGoroutine(),
-				NumCPU:         runtime.NumCPU(),
-				MemoryAlloc:    m.Alloc,
-				MemoryTotal:    m.TotalAlloc,
-				MemorySys:      m.Sys,
-				GCPauseTotal:   m.PauseTotalNs,
-				NumGC:          m.NumGC,
+				Uptime:        uptime.String(),
+				GoVersion:     runtime.Version(),
+				NumGoroutines: runtime.NumGoroutine(),
+				NumCPU:        runtime.NumCPU(),
+				MemoryAlloc:   m.Alloc,
+				MemoryTotal:   m.TotalAlloc,
+				MemorySys:     m.Sys,
+				GCPauseTotal:  m.PauseTotalNs,
+				NumGC:         m.NumGC,
 			},
 			HTTP: HTTPMetrics{
 				RequestsTotal:   requestsTotal,

@@ -45,7 +45,6 @@ func HealthCheck(cfg *config.Config, db *database.Database, producer *kafka.Prod
 		dbStart := time.Now()
 		ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 		defer cancel()
-		
 		if err := db.HealthCheck(ctx); err != nil {
 			checks["database"] = ComponentHealth{
 				Status:  "unhealthy",
@@ -66,7 +65,6 @@ func HealthCheck(cfg *config.Config, db *database.Database, producer *kafka.Prod
 			kafkaStart := time.Now()
 			kafkaCtx, kafkaCancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 			defer kafkaCancel()
-			
 			if err := producer.HealthCheck(kafkaCtx); err != nil {
 				checks["kafka"] = ComponentHealth{
 					Status:  "unhealthy",

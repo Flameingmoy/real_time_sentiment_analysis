@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 	"net/http"
 	"time"
@@ -10,8 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"rtsa-ingestion/internal/database"
 	"rtsa-ingestion/internal/kafka"
-	"rtsa-ingestion/internal/models"
-	"rtsa-ingestion/internal/worker"
 )
 
 // WebhookResponse represents a standard webhook response
@@ -21,31 +18,43 @@ type WebhookResponse struct {
 	ID      string `json:"id,omitempty"`
 }
 
-// processAndPublish handles data persistence and messaging within a worker.
-func processAndPublish(ctx context.Context, db *database.Database, producer *kafka.Producer, source, sourceID string, data interface{}) {
-	// Convert struct to map[string]interface{} via JSON marshaling to handle generic data types.
-	var content map[string]interface{}
-	jsonBytes, err := json.Marshal(data)
-	if err != nil {
-		log.Printf("ERROR: Failed to marshal data for source %s: %v", source, err)
+// processWebhookData is a helper function to process incoming webhook data
+func processWebhookData(c *gin.Context, db *database.Database, producer *kafka.Producer, source string) {
+	// Parse request body
+	var requestData map[string]interface{}
+	if err := c.ShouldBindJSON(&requestData); err != nil {
+		c.JSON(http.StatusBadRequest, WebhookResponse{
+			Status:  "error",
+			Message: "Invalid JSON payload: " + err.Error(),
+		})
 		return
 	}
-	if err := json.Unmarshal(jsonBytes, &content); err != nil {
-		log.Printf("ERROR: Failed to unmarshal data to map for source %s: %v", source, err)
-		return
+
+	// Extract source ID if available
+	sourceID := ""
+	if id, exists := requestData["id"]; exists {
+		if idStr, ok := id.(string); ok {
+			sourceID = idStr
+		}
 	}
 
 	// Create raw data message
 	rawData := &database.RawDataMessage{
 		Source:    source,
 		SourceID:  sourceID,
-		Content:   content, // Use the converted map
+		Content:   requestData,
 		Timestamp: time.Now(),
 	}
 
-	// Insert into database
+	// Insert into database with timeout
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
 	if err := db.InsertRawData(ctx, rawData); err != nil {
-		log.Printf("ERROR: Failed to store data for source %s: %v", source, err)
+		c.JSON(http.StatusInternalServerError, WebhookResponse{
+			Status:  "error",
+			Message: "Failed to store data: " + err.Error(),
+		})
 		return
 	}
 
@@ -54,121 +63,61 @@ func processAndPublish(ctx context.Context, db *database.Database, producer *kaf
 		kafkaData := map[string]interface{}{
 			"source":       source,
 			"source_id":    sourceID,
-			"content":      content, // Use the converted map
+			"content":      requestData,
 			"content_hash": rawData.ContentHash,
 			"timestamp":    rawData.Timestamp.Unix(),
 		}
 
+		// Use WithRetry for robust message publishing
 		err := producer.WithRetry(ctx, "send_to_sentiment_analysis", func() error {
 			return producer.SendToSentimentAnalysis(ctx, kafkaData)
 		})
 
 		if err != nil {
-			log.Printf("ERROR: Failed to send message to Kafka for source %s: %v", source, err)
+			// Log error but don't fail the request - data is already stored
+			log.Printf("Failed to send message to Kafka for source %s: %v", source, err)
 		}
-	} else {
-		log.Printf("WARN: Kafka producer is nil. Skipping message sending for source %s.", source)
 	}
 
-	log.Printf("INFO: Successfully processed and published data for source %s, ID: %s", source, rawData.ContentHash)
+	// Return success response
+	c.JSON(http.StatusOK, WebhookResponse{
+		Status:  "success",
+		Message: "Data received and stored successfully",
+		ID:      rawData.ContentHash,
+	})
 }
 
 // TrueDataWebhook handles TrueData API webhooks
-func TrueDataWebhook(db *database.Database, producer *kafka.Producer, dispatcher *worker.Dispatcher) gin.HandlerFunc {
+func TrueDataWebhook(db *database.Database, producer *kafka.Producer) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var data models.TrueData
-		if err := c.ShouldBindJSON(&data); err != nil {
-			c.JSON(http.StatusBadRequest, WebhookResponse{Status: "error", Message: "Invalid payload: " + err.Error()})
-			return
-		}
-
-		job := worker.Job{
-			Process: func(ctx context.Context) {
-				processAndPublish(ctx, db, producer, "truedata", data.ID, data)
-			},
-		}
-		dispatcher.Submit(job)
-
-		c.JSON(http.StatusAccepted, WebhookResponse{Status: "success", Message: "Request accepted for processing."})
+		processWebhookData(c, db, producer, "truedata")
 	}
 }
 
 // NewsWebhook handles news API webhooks
-func NewsWebhook(db *database.Database, producer *kafka.Producer, dispatcher *worker.Dispatcher) gin.HandlerFunc {
+func NewsWebhook(db *database.Database, producer *kafka.Producer) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var data models.NewsArticle
-		if err := c.ShouldBindJSON(&data); err != nil {
-			c.JSON(http.StatusBadRequest, WebhookResponse{Status: "error", Message: "Invalid payload: " + err.Error()})
-			return
-		}
-
-		job := worker.Job{
-			Process: func(ctx context.Context) {
-				processAndPublish(ctx, db, producer, "news", data.ID, data)
-			},
-		}
-		dispatcher.Submit(job)
-
-		c.JSON(http.StatusAccepted, WebhookResponse{Status: "success", Message: "Request accepted for processing."})
+		processWebhookData(c, db, producer, "news")
 	}
 }
 
 // TwitterWebhook handles Twitter API webhooks
-func TwitterWebhook(db *database.Database, producer *kafka.Producer, dispatcher *worker.Dispatcher) gin.HandlerFunc {
+func TwitterWebhook(db *database.Database, producer *kafka.Producer) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var data models.Tweet
-		if err := c.ShouldBindJSON(&data); err != nil {
-			c.JSON(http.StatusBadRequest, WebhookResponse{Status: "error", Message: "Invalid payload: " + err.Error()})
-			return
-		}
-
-		job := worker.Job{
-			Process: func(ctx context.Context) {
-				processAndPublish(ctx, db, producer, "twitter", data.ID, data)
-			},
-		}
-		dispatcher.Submit(job)
-
-		c.JSON(http.StatusAccepted, WebhookResponse{Status: "success", Message: "Request accepted for processing."})
+		processWebhookData(c, db, producer, "twitter")
 	}
 }
 
 // RedditWebhook handles Reddit API webhooks
-func RedditWebhook(db *database.Database, producer *kafka.Producer, dispatcher *worker.Dispatcher) gin.HandlerFunc {
+func RedditWebhook(db *database.Database, producer *kafka.Producer) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var data map[string]interface{}
-		if err := c.ShouldBindJSON(&data); err != nil {
-			c.JSON(http.StatusBadRequest, WebhookResponse{Status: "error", Message: "Invalid payload: " + err.Error()})
-			return
-		}
-
-		job := worker.Job{
-			Process: func(ctx context.Context) {
-				processAndPublish(ctx, db, producer, "reddit", "", data)
-			},
-		}
-		dispatcher.Submit(job)
-
-		c.JSON(http.StatusAccepted, WebhookResponse{Status: "success", Message: "Request accepted for processing."})
+		processWebhookData(c, db, producer, "reddit")
 	}
 }
 
 // EconomicWebhook handles economic data API webhooks
-func EconomicWebhook(db *database.Database, producer *kafka.Producer, dispatcher *worker.Dispatcher) gin.HandlerFunc {
+func EconomicWebhook(db *database.Database, producer *kafka.Producer) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var data map[string]interface{}
-		if err := c.ShouldBindJSON(&data); err != nil {
-			c.JSON(http.StatusBadRequest, WebhookResponse{Status: "error", Message: "Invalid payload: " + err.Error()})
-			return
-		}
-
-		job := worker.Job{
-			Process: func(ctx context.Context) {
-				processAndPublish(ctx, db, producer, "economic", "", data)
-			},
-		}
-		dispatcher.Submit(job)
-
-		c.JSON(http.StatusAccepted, WebhookResponse{Status: "success", Message: "Request accepted for processing."})
+		processWebhookData(c, db, producer, "economic")
 	}
 }
