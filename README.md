@@ -32,27 +32,27 @@ graph TB
     end
     
     subgraph "Ingestion Layer"
-        F[Golang HTTP Server<br/>Gin Framework]
+        F[Golang HTTP Server\nGin Framework]
         G[Rate Limiter]
         H[Data Validator]
     end
     
     subgraph "Storage Layer"
-        I[(PostgreSQL-1<br/>Raw Data)]
-        J[Apache Kafka<br/>Message Queue]
-        K[(Redis Vector Store<br/>Embeddings)]
+        I[(PostgreSQL-1\nRaw Data)]
+        J[Apache Kafka\nMessage Queue]
+        K[(Redis Vector Store\nEmbeddings)]
     end
     
     subgraph "Processing Layer"
         L[Python Sentiment Service]
-        M[Ollama Granite 3.3<br/>2b/8b Local Model]
+        M[Ollama Granite 3.3\n2b/8b Local Model]
         N[System Prompt Handler]
         O[Response Parser]
     end
     
     subgraph "Analytics Layer"
-        P[(PostgreSQL-2<br/>Analytics)]
-        Q[(PostgreSQL-3<br/>Logging)]
+        P[(PostgreSQL-2\nAnalytics)]
+        Q[(PostgreSQL-3\nLogging)]
     end
     
     subgraph "Visualization Layer"
@@ -84,7 +84,7 @@ graph TB
     
     F --> Q
     L --> Q
-```
+
 
 ### Service Communication
 
